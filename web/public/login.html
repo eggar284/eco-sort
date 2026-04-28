@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECO-SORT — Iniciar sesión</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300c27c'/><text y='.9em' font-size='75' x='10'>♻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:#00c27c; --green-light:#00e89a; --green-dark:#009960;
+  --green-soft:rgba(0,194,124,0.10);
+  --bg:#f0fdf6; --bg-card:#ffffff; --bg-nav:rgba(255,255,255,0.82);
+  --text:#0d1f17; --text-2:#3d6b55; --text-3:#6b9e84;
+  --border:rgba(0,194,124,0.18); --error:#ef4444;
+  --shadow:0 4px 24px rgba(0,0,0,0.07);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.10);
+  --radius:16px; --font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.45;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px;background:var(--bg-nav);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);}
+
+/* Botón de regreso */
+.btn-back{display:flex;align-items:center;gap:0.4rem;color:var(--text-2);text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.4rem 0.8rem;border-radius:50px;border:1.5px solid var(--border);transition:all 0.2s;background:transparent;}
+.btn-back:hover{border-color:var(--green);color:var(--green);background:var(--green-soft);}
+.btn-back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+.nav-logo{display:flex;align-items:center;gap:0.5rem;font-size:1.1rem;font-weight:700;color:var(--text);text-decoration:none;letter-spacing:-0.02em;position:absolute;left:50%;transform:translateX(-50%);}
+.nav-logo .leaf{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,194,124,0.35);}
+.brand-eco{color:var(--green);} .brand-sort{color:var(--text-2);font-weight:400;}
+
+.nav-right-area{display:flex;align-items:center;gap:0.6rem;}
+.lang-toggle{display:flex;align-items:center;gap:0.3rem;background:var(--green-soft);border:1.5px solid var(--border);border-radius:50px;padding:0.25rem 0.4rem;}
+.lang-btn{background:transparent;border:none;color:var(--text-3);font-size:0.75rem;font-weight:600;cursor:pointer;padding:0.2rem 0.5rem;border-radius:50px;transition:all 0.2s;}
+.lang-btn.active{background:var(--green);color:#fff;}
+
+.page-wrap{position:relative;z-index:10;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 1.5rem 2rem;}
+
+.auth-card{background:var(--bg-card);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow-lg);padding:2.8rem 2.5rem;width:100%;max-width:420px;animation:cardIn 0.5s ease both;}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(0.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:2rem;}
+.auth-logo .leaf{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 14px rgba(0,194,124,0.35);}
+.auth-logo span{font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;}
+.auth-title{font-size:1.6rem;font-weight:700;letter-spacing:-0.03em;text-align:center;margin-bottom:0.4rem;}
+.auth-sub{font-size:0.875rem;color:var(--text-3);text-align:center;margin-bottom:2rem;}
+
+.form-group{margin-bottom:1.1rem;}
+.form-group label{display:block;font-size:0.82rem;font-weight:600;color:var(--text-2);margin-bottom:0.4rem;}
+.form-group input{width:100%;background:#f8fffe;border:1.5px solid var(--border);color:var(--text);padding:0.75rem 1rem;border-radius:10px;font-family:var(--font);font-size:0.95rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.form-group input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,194,124,0.12);}
+.form-group input::placeholder{color:var(--text-3);}
+.form-group input.error{border-color:var(--error);}
+
+.remember-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;}
+.remember-row label{font-size:0.82rem;color:var(--text-2);display:flex;align-items:center;gap:0.4rem;cursor:pointer;}
+.remember-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--green);cursor:pointer;}
+.forgot-link{font-size:0.82rem;color:var(--green);text-decoration:none;font-weight:500;}
+
+.btn-submit{width:100%;background:linear-gradient(135deg,var(--green),var(--green-light));color:#fff;border:none;padding:0.85rem;border-radius:10px;font-family:var(--font);font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 4px 18px rgba(0,194,124,0.35);transition:all 0.25s;margin-bottom:1.5rem;}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,194,124,0.45);}
+.btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+
+.divider{display:flex;align-items:center;gap:0.8rem;margin-bottom:1.5rem;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.divider span{font-size:0.78rem;color:var(--text-3);white-space:nowrap;}
+
+.signup-row{text-align:center;font-size:0.875rem;color:var(--text-2);}
+.signup-row a{color:var(--green);font-weight:600;text-decoration:none;}
+.signup-row a:hover{text-decoration:underline;}
+
+.msg-error{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:0.7rem 1rem;color:var(--error);font-size:0.85rem;margin-bottom:1rem;display:none;}
+.msg-error.show{display:block;}
+
+@media(max-width:480px){
+  .auth-card{padding:2rem 1.5rem;border-radius:16px;}
+  .nav-logo{font-size:1rem;}
+  nav{padding:0 1rem;}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="btn-back" aria-label="Volver al inicio">
+    <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"></polyline></svg>
+    <span data-i18n="nav.back">Inicio</span>
+  </a>
+
+  <a href="index.html" class="nav-logo">
+    <div class="leaf">♻</div>
+    <span><span class="brand-eco">ECO</span><span class="brand-sort">-SORT</span></span>
+  </a>
+
+  <div class="nav-right-area">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="leaf">♻</div>
+      <span><span class="brand-eco">ECO</span><span class="brand-sort">-SORT</span></span>
+    </div>
+    <h1 class="auth-title" data-i18n="login.title">Bienvenido de vuelta</h1>
+    <p class="auth-sub" data-i18n="login.sub">Inicia sesión para continuar</p>
+
+    <div class="msg-error" id="login-error"></div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label data-i18n="login.email">Correo electrónico</label>
+        <input type="email" id="email" placeholder="tu@email.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label data-i18n="login.pass">Contraseña</label>
+        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+
+      <div class="remember-row">
+        <label><input type="checkbox" id="remember"> <span data-i18n="login.remember">Recordarme</span></label>
+        <a href="#" class="forgot-link" data-i18n="login.forgot">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submit-btn" data-i18n="login.btn">Iniciar sesión</button>
+    </form>
+
+    <div class="divider"><span data-i18n="login.or">¿No tienes cuenta?</span></div>
+    <div class="signup-row">
+      <a href="register.html" data-i18n="login.signup">Crear cuenta gratis →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── CANVAS ── */
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+const pts=Array.from({length:40},()=>({x:Math.random()*2000,y:Math.random()*1200,vx:(Math.random()-0.5)*0.2,vy:(Math.random()-0.5)*0.2,r:Math.random()*2+0.5}));
+let t=0;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  for(let i=0;i<8;i++){
+    ctx.beginPath();ctx.strokeStyle=`rgba(0,194,124,${0.035+i*0.005})`;ctx.lineWidth=1.2;
+    for(let x=0;x<W;x+=3){const y=H*0.5+Math.sin(x/W*5+t*0.011+i*0.85)*(20+i*15);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    ctx.stroke();
+  }
+  pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(0,194,124,0.18)';ctx.fill();});
+  t++;requestAnimationFrame(draw);
+}
+draw();
+
+if(localStorage.getItem('ecosort_token')) window.location.href='dashboard.html';
+
+document.getElementById('login-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const btn=document.getElementById('submit-btn');
+  const errEl=document.getElementById('login-error');
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const remember=document.getElementById('remember').checked;
+
+  const emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRx.test(email)){
+    errEl.textContent=currentLang==='es'?'Ingresa un correo válido (ej: tu@email.com)':'Enter a valid email';
+    errEl.classList.add('show');
+    document.getElementById('email').classList.add('error');
+    return;
+  }
+  if(!password){
+    errEl.textContent=currentLang==='es'?'Ingresa tu contraseña':'Enter your password';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled=true;
+  btn.textContent=currentLang==='es'?'Entrando...':'Signing in...';
+  errEl.classList.remove('show');
+  document.getElementById('email').classList.remove('error');
+
+  try{
+    const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    const data=await res.json();
+    if(data.token){
+      localStorage.setItem('ecosort_token',data.token);
+      localStorage.setItem('ecosort_user',JSON.stringify(data.user));
+      if(data.user?.idioma) localStorage.setItem('ecosort_lang',data.user.idioma);
+      window.location.href='dashboard.html';
+    } else {
+      errEl.textContent=data.message||(currentLang==='es'?'Credenciales incorrectas':'Incorrect credentials');
+      errEl.classList.add('show');
+    }
+  } catch(ex){
+    errEl.textContent=currentLang==='es'?'Error de conexión con el servidor':'Server connection error';
+    errEl.classList.add('show');
+  }
+  btn.disabled=false;
+  btn.textContent=currentLang==='es'?'Iniciar sesión':'Log in';
+});
+
+const i18n={
+  es:{'nav.back':'Inicio','login.title':'Bienvenido de vuelta','login.sub':'Inicia sesión para continuar','login.email':'Correo electrónico','login.pass':'Contraseña','login.remember':'Recordarme','login.forgot':'¿Olvidaste tu contraseña?','login.btn':'Iniciar sesión','login.or':'¿No tienes cuenta?','login.signup':'Crear cuenta gratis →'},
+  en:{'nav.back':'Home','login.title':'Welcome back','login.sub':'Log in to continue','login.email':'Email address','login.pass':'Password','login.remember':'Remember me','login.forgot':'Forgot your password?','login.btn':'Log in','login.or':"Don't have an account?",'login.signup':'Create free account →'}
+};
+let currentLang=localStorage.getItem('ecosort_lang')||'es';
+function setLang(lang){
+  currentLang=lang;localStorage.setItem('ecosort_lang',lang);
+  document.documentElement.setAttribute('data-lang',lang);
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang]?.[k])el.textContent=i18n[lang][k];});
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===lang.toUpperCase()));
+}
+setLang(currentLang);
+</script>
+</body>
+</html>

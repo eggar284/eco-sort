@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECO-SORT — Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300c27c'/><text y='.9em' font-size='75' x='10'>♻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#00c27c;--green-light:#00e89a;--green-dark:#009960;
+  --green-soft:rgba(0,194,124,0.10);--green-soft2:rgba(0,194,124,0.06);
+  --blue:#3b82f6;--purple:#8b5cf6;--amber:#f59e0b;--red:#ef4444;
+  --bg:#f0fdf6;--bg-card:#ffffff;--bg-nav:rgba(255,255,255,0.92);
+  --bg-sidebar:#ffffff;
+  --text:#0d1f17;--text-2:#3d6b55;--text-3:#6b9e84;
+  --border:rgba(0,194,124,0.15);--border2:rgba(0,194,124,0.08);
+  --shadow:0 2px 12px rgba(0,0,0,0.06);--shadow-md:0 4px 20px rgba(0,0,0,0.08);--shadow-lg:0 12px 40px rgba(0,0,0,0.10);
+  --radius:14px;--radius-sm:10px;
+  --nav-h:64px;--sidebar-w:240px;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.30;}
+
+/* ── NAV — consistente con todas las páginas ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;
+  background:var(--bg-nav);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow);
+}
+.nav-logo{display:flex;align-items:center;gap:0.5rem;font-size:1.1rem;font-weight:700;color:var(--text);text-decoration:none;letter-spacing:-0.02em;}
+.nav-logo .leaf{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,194,124,0.35);}
+.brand-eco{color:var(--green);} .brand-sort{color:var(--text-2);font-weight:400;}
+
+/* Nav links — mismo orden: Features (index) · About */
+.nav-mid{display:flex;align-items:center;gap:1.5rem;}
+.nav-mid a{color:var(--text-2);text-decoration:none;font-size:0.85rem;font-weight:500;transition:color 0.2s;}
+.nav-mid a:hover{color:var(--green);}
+
+.nav-right{display:flex;align-items:center;gap:0.8rem;}
+.xp-pill{background:var(--green-soft);border:1.5px solid var(--border);color:var(--green-dark);padding:0.3rem 0.9rem;border-radius:50px;font-size:0.8rem;font-weight:700;transition:all 0.3s;}
+.xp-pill.bump{animation:xpBump 0.4s ease;}
+@keyframes xpBump{0%,100%{transform:scale(1);}50%{transform:scale(1.15);background:var(--green);color:#fff;}}
+.greeting{font-size:0.85rem;color:var(--text-2);font-weight:500;display:flex;align-items:center;gap:0.5rem;}
+.avatar{width:34px;height:34px;border-radius:50%;border:2px solid var(--green);background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--green-dark);overflow:hidden;cursor:pointer;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.btn-logout{background:transparent;border:1.5px solid rgba(239,68,68,0.25);color:#ef4444;padding:0.35rem 0.9rem;border-radius:50px;cursor:pointer;font-size:0.8rem;font-weight:500;transition:all 0.2s;}
+.btn-logout:hover{background:rgba(239,68,68,0.07);}
+.lang-toggle{display:flex;align-items:center;gap:0.2rem;background:var(--green-soft);border:1.5px solid var(--border);border-radius:50px;padding:0.2rem 0.35rem;}
+.lang-btn{background:transparent;border:none;color:var(--text-3);font-size:0.72rem;font-weight:600;cursor:pointer;padding:0.18rem 0.45rem;border-radius:50px;transition:all 0.2s;}
+.lang-btn.active{background:var(--green);color:#fff;}
+
+/* Hamburger animado */
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:5px;border:none;background:transparent;}
+.hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all 0.3s;}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px);}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px);}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh;padding-top:var(--nav-h);position:relative;z-index:10;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  position:sticky;top:var(--nav-h);
+  height:calc(100vh - var(--nav-h));
+  overflow-y:auto;overflow-x:hidden;
+  background:var(--bg-sidebar);
+  border-right:1px solid var(--border);
+  padding:1.5rem 1rem;
+  display:flex;flex-direction:column;gap:2px;
+}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.sidebar-section{font-size:0.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;padding:0.8rem 0.6rem 0.3rem;}
+.sidebar-item{
+  display:flex;align-items:center;gap:0.7rem;
+  padding:0.6rem 0.8rem;border-radius:var(--radius-sm);
+  color:var(--text-2);font-size:0.875rem;font-weight:500;
+  cursor:pointer;text-decoration:none;
+  transition:all 0.18s;border:none;background:transparent;width:100%;text-align:left;
+}
+.sidebar-item:hover{background:var(--green-soft);color:var(--green-dark);}
+.sidebar-item.active{background:var(--green-soft);color:var(--green);font-weight:600;border-left:3px solid var(--green);padding-left:calc(0.8rem - 3px);}
+.sidebar-item .si-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+
+/* ── MOBILE SIDEBAR — con overlay blur + animación suave ── */
+.sidebar-overlay{
+  display:none;
+  position:fixed;
+  top:var(--nav-h);
+  /* Solo cubre la parte derecha — el sidebar queda en z-index:150 encima */
+  left:260px;
+  right:0;
+  bottom:0;
+  background:rgba(13,31,23,0.5);
+  z-index:148;
+  opacity:0;
+  transition:opacity 0.35s;
+  cursor:pointer;
+}
+.sidebar-overlay.open{display:block;opacity:1;}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{
+    position:fixed;top:var(--nav-h);left:0;bottom:0;
+    width:260px;z-index:150;
+    transform:translateX(-100%);
+    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    box-shadow:none;
+  }
+  .sidebar.open{
+    transform:translateX(0);
+    box-shadow:var(--shadow-lg);
+  }
+  .hamburger{display:flex;}
+  .nav-mid{display:none;}
+}
+
+/* Sidebar items animados al abrir mobile */
+.sidebar.open .sidebar-item{animation:sideIn 0.25s ease both;}
+.sidebar.open .sidebar-item:nth-child(1){animation-delay:0.04s;}
+.sidebar.open .sidebar-item:nth-child(2){animation-delay:0.08s;}
+.sidebar.open .sidebar-item:nth-child(3){animation-delay:0.12s;}
+.sidebar.open .sidebar-item:nth-child(4){animation-delay:0.16s;}
+.sidebar.open .sidebar-item:nth-child(5){animation-delay:0.20s;}
+.sidebar.open .sidebar-item:nth-child(6){animation-delay:0.24s;}
+@keyframes sideIn{from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:translateX(0);}}
+
+/* ── CONTENT ── */
+.content{padding:2rem;display:flex;flex-direction:column;gap:1.5rem;min-width:0;}
+@media(max-width:600px){.content{padding:1rem;gap:1.2rem;}}
+
+/* ── TAB PANELS con transición suave ── */
+.tab-panel{display:none;animation:tabIn 0.3s ease both;}
+.tab-panel.active{display:block;}
+@keyframes tabIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+.sect-title{font-size:0.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.8rem;}
+
+/* ── CARDS ── */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);transition:box-shadow 0.2s;}
+.card:hover{box-shadow:var(--shadow-md);}
+.card-title{font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:0.4rem;}
+
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr;}}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1rem;box-shadow:var(--shadow);text-align:center;transition:all 0.3s;}
+.stat-card .s-icon{font-size:1.6rem;margin-bottom:0.4rem;}
+.stat-card .s-val{font-size:1.7rem;font-weight:700;color:var(--green);letter-spacing:-0.03em;transition:all 0.4s;}
+.stat-card .s-val.bump{animation:valBump 0.5s ease;}
+@keyframes valBump{0%,100%{transform:scale(1);}40%{transform:scale(1.18);color:var(--green-light);}}
+.stat-card .s-label{font-size:0.72rem;color:var(--text-3);margin-top:0.2rem;font-weight:500;}
+
+/* ── LINK + CAM — UNIFICADOS en un grid ── */
+.link-cam-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:760px){.link-cam-grid{grid-template-columns:1fr;}}
+
+/* Link machine */
+.status-row{display:flex;align-items:center;gap:0.7rem;background:var(--green-soft2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.8rem 1rem;margin-bottom:1rem;}
+.dot{width:9px;height:9px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.5);flex-shrink:0;transition:all 0.3s;}
+.dot.on{background:var(--green);box-shadow:0 0 8px rgba(0,194,124,0.6);}
+.dot.pulse{animation:dotPulse 1.4s infinite;}
+@keyframes dotPulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+.status-info .s-name{font-size:0.85rem;font-weight:600;color:var(--text);}
+.status-info .s-code{font-size:0.75rem;color:var(--green);font-weight:700;}
+.input-row{display:flex;gap:0.6rem;margin-bottom:0.8rem;}
+.input-row input{flex:1;background:#f8fffe;border:1.5px solid var(--border);color:var(--text);padding:0.65rem 0.9rem;border-radius:var(--radius-sm);font-family:var(--font);font-size:0.92rem;outline:none;letter-spacing:0.05em;transition:border-color 0.2s;}
+.input-row input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,194,124,0.12);}
+.btn-green{background:linear-gradient(135deg,var(--green),var(--green-light));color:#fff;border:none;padding:0.65rem 1.2rem;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:var(--font);}
+.btn-green:hover{box-shadow:0 4px 14px rgba(0,194,124,0.4);transform:translateY(-1px);}
+.btn-red{background:transparent;color:#ef4444;border:1.5px solid rgba(239,68,68,0.25);padding:0.65rem;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;width:100%;font-family:var(--font);transition:all 0.2s;display:none;margin-top:0.3rem;}
+.btn-red:hover{background:rgba(239,68,68,0.07);}
+
+/* Camera */
+.cam-wrap{background:#000;border-radius:var(--radius-sm);aspect-ratio:16/9;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;}
+.cam-wrap img{width:100%;height:100%;object-fit:cover;display:none;}
+.cam-placeholder{text-align:center;color:var(--text-3);display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%;}
+.cam-placeholder .cp-icon{font-size:2.5rem;opacity:0.35;margin-bottom:0.4rem;}
+.cam-placeholder p{font-size:0.8rem;opacity:0.5;}
+.scan-overlay{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);display:none;top:0;}
+.scan-overlay.active{display:block;animation:scanMove 2.5s linear infinite;}
+@keyframes scanMove{0%{top:0;}100%{top:100%;}}
+.live-badge{position:absolute;top:8px;right:8px;background:rgba(239,68,68,0.85);color:#fff;font-size:0.68rem;font-weight:700;padding:0.2rem 0.5rem;border-radius:50px;display:none;align-items:center;gap:0.3rem;}
+.live-badge.show{display:flex;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:dotPulse 1s infinite;}
+
+/* Sesión terminada banner */
+.session-banner{
+  display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);
+  border-radius:var(--radius-sm);padding:0.75rem 1rem;
+  font-size:0.85rem;color:#dc2626;font-weight:500;
+  margin-bottom:0.8rem;
+}
+.session-banner.show{display:block;}
+
+/* ── RESULT ── */
+.result-empty{text-align:center;color:var(--text-3);font-size:0.85rem;padding:1.5rem 0;opacity:0.6;}
+.result-big{text-align:center;}
+.result-cat{font-size:2rem;font-weight:700;color:var(--green);letter-spacing:-0.03em;}
+.result-mat{font-size:0.875rem;color:var(--text-2);margin-top:0.2rem;}
+.result-conf{font-size:0.8rem;color:var(--text-3);}
+.result-xp{font-size:1.1rem;font-weight:700;color:var(--amber);margin-top:0.5rem;}
+
+/* ── RES + LB GRID ── */
+.res-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:760px){.res-lb-grid{grid-template-columns:1fr;}}
+
+/* ── LEADERBOARD ── */
+.lb-row{display:flex;align-items:center;gap:0.7rem;padding:0.5rem 0;border-bottom:1px solid var(--border2);}
+.lb-row:last-child{border-bottom:none;}
+.lb-rank{width:24px;font-size:0.85rem;font-weight:700;color:var(--text-3);text-align:center;flex-shrink:0;}
+.lb-rank.gold{color:#f59e0b;}
+.lb-avatar{width:32px;height:32px;border-radius:50%;background:var(--green-soft);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--green-dark);flex-shrink:0;overflow:hidden;}
+.lb-avatar img{width:100%;height:100%;object-fit:cover;}
+.lb-name{flex:1;font-size:0.85rem;font-weight:500;}
+.lb-pts{font-size:0.8rem;font-weight:700;color:var(--green);}
+
+/* ── HISTORY TABLE ── */
+.hist-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+.hist-table th{text-align:left;padding:0.5rem 0.6rem;color:var(--text-3);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);}
+.hist-table td{padding:0.65rem 0.6rem;border-bottom:1px solid var(--border2);color:var(--text);}
+.hist-table tr:last-child td{border-bottom:none;}
+.hist-table tr:hover td{background:var(--green-soft2);}
+.badge{display:inline-block;padding:0.18rem 0.55rem;border-radius:50px;font-size:0.7rem;font-weight:700;}
+.b-plastic{background:rgba(59,130,246,0.1);color:#1d4ed8;border:1px solid rgba(59,130,246,0.25);}
+.b-carton{background:rgba(180,100,30,0.1);color:#92400e;border:1px solid rgba(180,100,30,0.25);}
+.b-metal{background:rgba(100,116,139,0.1);color:#334155;border:1px solid rgba(100,116,139,0.25);}
+.b-unicel{background:rgba(245,158,11,0.1);color:#92400e;border:1px solid rgba(245,158,11,0.25);}
+.b-vidrio{background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.25);}
+.b-especial{background:rgba(239,68,68,0.1);color:#991b1b;border:1px solid rgba(239,68,68,0.25);}
+.b-papel{background:rgba(139,92,246,0.1);color:#4c1d95;border:1px solid rgba(139,92,246,0.25);}
+
+/* ── ACHIEVEMENTS ── */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.8rem;}
+.ach-item{background:var(--green-soft2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;text-align:center;transition:all 0.2s;}
+.ach-item.locked{opacity:0.4;filter:grayscale(1);}
+.ach-item:hover:not(.locked){background:var(--green-soft);border-color:var(--green);}
+.ach-icon{font-size:2rem;margin-bottom:0.4rem;}
+.ach-name{font-size:0.75rem;font-weight:600;color:var(--text-2);}
+.ach-desc{font-size:0.68rem;color:var(--text-3);margin-top:0.2rem;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:400;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);padding:1rem 1.3rem;max-width:300px;transform:translateX(130%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);font-size:0.875rem;}
+.toast.show{transform:translateX(0);}
+.toast.err{border-color:rgba(239,68,68,0.35);background:#fff8f8;}
+.toast.xp{border-color:rgba(245,158,11,0.35);background:#fffbf0;}
+.toast strong{color:var(--green);font-weight:700;}
+.toast.err strong{color:#ef4444;}
+.toast.xp strong{color:var(--amber);}
+
+/* ── PAGE TRANSITION (salida a about.html) ── */
+body.leaving{animation:pageLeave 0.3s ease forwards;}
+@keyframes pageLeave{to{opacity:0;transform:translateY(-8px);}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:480px){
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .stat-card .s-val{font-size:1.4rem;}
+  nav .xp-pill{display:none;}
+  .hist-table th:nth-child(3),.hist-table td:nth-child(3){display:none;}
+  .hist-table th:nth-child(5),.hist-table td:nth-child(5){display:none;}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div style="display:flex;align-items:center;gap:0.8rem;">
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">
+      <div class="leaf">♻</div>
+      <span><span class="brand-eco">ECO</span><span class="brand-sort">-SORT</span></span>
+    </a>
+  </div>
+  <!-- Links consistentes con el resto de páginas -->
+  <div class="nav-mid">
+    <a href="dashboard.html" data-i18n="nav.dash">Dashboard</a>
+    <a href="about.html" id="about-link" data-i18n="nav.about">Nosotros</a>
+  </div>
+  <div class="nav-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+    <div class="xp-pill" id="xp-pill">⚡ <span id="nav-xp">0</span> XP</div>
+    <div class="greeting">
+      <span id="nav-greeting"></span>
+      <div class="avatar" id="nav-avatar-wrap">
+        <span id="nav-avatar-initials">?</span>
+      </div>
+    </div>
+    <button class="btn-logout" id="logout-btn" data-i18n="nav.logout">Salir</button>
+  </div>
+</nav>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="layout">
+  <!-- SIDEBAR — 2 botones principales -->
+  <aside class="sidebar" id="sidebar">
+    <span class="sidebar-section" data-i18n="sb.main">Principal</span>
+    <!-- Tab 1: Cámara + Vincular (PRIMERO) -->
+    <button class="sidebar-item active" data-tab="machine" onclick="switchTab('machine',this)">
+      <span class="si-icon">📷</span> <span data-i18n="sb.machine">Máquina & Cámara</span>
+    </button>
+    <!-- Tab 2: Dashboard/Resumen (SEGUNDO) -->
+    <button class="sidebar-item" data-tab="overview" onclick="switchTab('overview',this)">
+      <span class="si-icon">📊</span> <span data-i18n="sb.dashboard">Resumen</span>
+    </button>
+
+    <span class="sidebar-section" data-i18n="sb.profile">Mi Perfil</span>
+    <button class="sidebar-item" data-tab="achievements" onclick="switchTab('achievements',this)">
+      <span class="si-icon">🏆</span> <span data-i18n="sb.ach">Mis Logros</span>
+    </button>
+    <button class="sidebar-item" data-tab="history" onclick="switchTab('history',this)">
+      <span class="si-icon">📈</span> <span data-i18n="sb.hist">Historial</span>
+    </button>
+    <button class="sidebar-item" data-tab="leaderboard" onclick="switchTab('leaderboard',this)">
+      <span class="si-icon">🌍</span> <span data-i18n="sb.lb">Leaderboard</span>
+    </button>
+
+    <span class="sidebar-section" data-i18n="sb.sys">Sistema</span>
+    <button class="sidebar-item" id="about-sidebar-btn">
+      <span class="si-icon">ℹ️</span> <span data-i18n="sb.about">Acerca de</span>
+    </button>
+    <button class="sidebar-item" data-tab="settings" onclick="switchTab('settings',this)">
+      <span class="si-icon">⚙️</span> <span data-i18n="sb.settings">Configuración</span>
+    </button>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="content" id="main-content">
+
+    <!-- ── MÁQUINA & CÁMARA (PRIMERA PESTAÑA) ── -->
+    <div id="tab-machine" class="tab-panel active">
+      <p class="sect-title" data-i18n="mc.title">Máquina & Cámara en vivo</p>
+
+      <!-- Banner sesión terminada -->
+      <div class="session-banner" id="session-banner"></div>
+
+      <div class="link-cam-grid">
+        <!-- Vincular -->
+        <div class="card">
+          <div class="card-title">⚡ <span data-i18n="lk.card">ECO-SORT Machine</span></div>
+          <div class="status-row">
+            <div class="dot pulse" id="status-dot"></div>
+            <div class="status-info">
+              <div class="s-name" id="status-text" data-i18n="lk.noMachine">Sin máquina vinculada</div>
+              <div class="s-code" id="status-code"></div>
+            </div>
+          </div>
+          <p style="font-size:0.82rem;color:var(--text-3);margin-bottom:1rem;" data-i18n="lk.hint">Ingresa el código ECO-XXX que aparece en la pantalla de la máquina.</p>
+          <div class="input-row">
+            <input type="text" id="code-input" placeholder="ECO-001" maxlength="7" style="text-transform:uppercase;font-weight:700;letter-spacing:0.08em;">
+            <button class="btn-green" id="btn-vincular" data-i18n="lk.link">Vincular</button>
+          </div>
+          <button class="btn-red" id="btn-desvincular" data-i18n="lk.unlink">Desvincular</button>
+        </div>
+
+        <!-- Cámara en vivo -->
+        <div class="card">
+          <div class="card-title">📷 <span data-i18n="cam.title">Cámara en vivo</span></div>
+          <div class="cam-wrap">
+            <img id="cam-img" src="" alt="feed">
+            <div class="cam-placeholder" id="cam-placeholder">
+              <div class="cp-icon">📷</div>
+              <p data-i18n="cam.noMachine">Vincula una máquina para ver la cámara</p>
+            </div>
+            <div class="scan-overlay" id="scan-overlay"></div>
+            <div class="live-badge" id="live-badge"><div class="live-dot"></div> LIVE</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Último resultado en tiempo real -->
+      <div class="card">
+        <div class="card-title">◈ <span data-i18n="ov.lastResult">Último resultado</span></div>
+        <div id="result-content-machine">
+          <div class="result-empty" data-i18n="ov.noResult">El resultado aparecerá aquí cuando la máquina detecte un objeto</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OVERVIEW / RESUMEN (SEGUNDA PESTAÑA) ── -->
+    <div id="tab-overview" class="tab-panel">
+      <p class="sect-title" data-i18n="ov.title">Resumen de actividad</p>
+      <div class="stats-row">
+        <div class="stat-card"><div class="s-icon">♻️</div><div class="s-val" id="total-recycled">0</div><div class="s-label" data-i18n="ov.recycled">Reciclados</div></div>
+        <div class="stat-card"><div class="s-icon">⚡</div><div class="s-val" id="total-xp">0</div><div class="s-label" data-i18n="ov.xp">Puntos XP</div></div>
+        <div class="stat-card"><div class="s-icon">🏅</div><div class="s-val" id="user-rank">#—</div><div class="s-label" data-i18n="ov.rank">Ranking</div></div>
+      </div>
+
+      <div class="res-lb-grid">
+        <div class="card">
+          <div class="card-title">◈ <span data-i18n="ov.lastResult">Último resultado</span></div>
+          <div id="result-content"><div class="result-empty" data-i18n="ov.noResult">El resultado aparecerá aquí automáticamente</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 <span data-i18n="ov.topRecyclers">Top recicladores</span></div>
+          <div id="lb-mini"><div class="result-empty" data-i18n="ov.loading">Cargando...</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 <span data-i18n="ov.recent">Clasificaciones recientes</span></div>
+        <div style="overflow-x:auto;">
+          <table class="hist-table">
+            <thead><tr>
+              <th data-i18n="h.material">Material</th>
+              <th data-i18n="h.cat">Categoría</th>
+              <th data-i18n="h.conf">Confianza</th>
+              <th data-i18n="h.xp">XP</th>
+              <th data-i18n="h.date">Fecha</th>
+            </tr></thead>
+            <tbody id="history-mini-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:1.5rem;font-size:0.85rem;" data-i18n="h.empty">Sin registros aún</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ACHIEVEMENTS ── -->
+    <div id="tab-achievements" class="tab-panel">
+      <p class="sect-title" data-i18n="ach.title">Mis logros</p>
+      <div class="card"><div class="ach-grid" id="ach-grid"></div></div>
+    </div>
+
+    <!-- ── HISTORY ── -->
+    <div id="tab-history" class="tab-panel">
+      <p class="sect-title" data-i18n="hist.title">Historial completo</p>
+      <div class="card">
+        <div style="overflow-x:auto;">
+          <table class="hist-table">
+            <thead><tr>
+              <th data-i18n="h.material">Material</th>
+              <th data-i18n="h.cat">Categoría</th>
+              <th data-i18n="h.conf">Confianza</th>
+              <th data-i18n="h.xp">XP</th>
+              <th data-i18n="h.date">Fecha</th>
+            </tr></thead>
+            <tbody id="history-full-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:2rem;font-size:0.85rem;" data-i18n="h.empty">Sin registros aún</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LEADERBOARD ── -->
+    <div id="tab-leaderboard" class="tab-panel">
+      <p class="sect-title" data-i18n="lb.title">Leaderboard global</p>
+      <div class="card" style="max-width:500px;">
+        <div id="lb-full"><div class="result-empty" data-i18n="ov.loading">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div id="tab-settings" class="tab-panel">
+      <p class="sect-title" data-i18n="set.title">Configuración</p>
+      <div class="card" style="max-width:420px;">
+        <div class="card-title">👤 <span data-i18n="set.profile">Perfil</span></div>
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+          <div class="avatar" id="settings-avatar" style="width:60px;height:60px;font-size:1.3rem;flex-shrink:0;"></div>
+          <div>
+            <div style="font-weight:600;font-size:1rem;" id="settings-name">—</div>
+            <div style="font-size:0.82rem;color:var(--text-3);" id="settings-email">—</div>
+          </div>
+        </div>
+        <label style="display:inline-block;background:var(--green-soft);border:1.5px solid var(--border);color:var(--green-dark);padding:0.55rem 1.2rem;border-radius:50px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-bottom:1.5rem;transition:all 0.2s;" data-i18n="set.changePhoto">Cambiar foto de perfil</label>
+        <input type="file" id="settings-photo-input" accept="image/*" style="display:none;">
+        <div style="border-top:1px solid var(--border);padding-top:1.2rem;">
+          <div class="card-title">🌐 <span data-i18n="set.lang">Idioma</span></div>
+          <div class="lang-toggle" style="width:fit-content;">
+            <button class="lang-btn" onclick="setLang('es')">ES</button>
+            <button class="lang-btn" onclick="setLang('en')">EN</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+/* ── AUTH ── */
+const token=localStorage.getItem('ecosort_token');
+if(!token){window.location.href='/';}
+let user={};
+try{user=JSON.parse(localStorage.getItem('ecosort_user')||'{}');}catch(e){}
+
+/* ── CANVAS ── */
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H;function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+let t=0;
+function draw(){ctx.clearRect(0,0,W,H);for(let i=0;i<7;i++){ctx.beginPath();ctx.strokeStyle=`rgba(0,194,124,${0.025+i*0.004})`;ctx.lineWidth=1;for(let x=0;x<W;x+=3){const y=H*0.5+Math.sin(x/W*4+t*0.01+i*0.75)*(20+i*18);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();}t++;requestAnimationFrame(draw);}
+draw();
+
+/* ── INIT UI ── */
+function initUserUI(){
+  const name=user.nombre||user.name||'Usuario';
+  const idioma=user.idioma||currentLang;
+  const greet=idioma==='en'?`Hi, ${name}!`:`¡Hola, ${name}!`;
+  document.getElementById('nav-greeting').textContent=greet;
+  // Mostrar iniciales mientras carga la foto real
+  document.getElementById('nav-avatar-initials').textContent=(name[0]||'?').toUpperCase();
+  document.getElementById('settings-name').textContent=`${user.nombre||''} ${user.apellido||''}`.trim();
+  document.getElementById('settings-email').textContent=user.email||'';
+  document.getElementById('settings-avatar').innerHTML=`<span style="font-size:1.3rem;">${(name[0]||'?').toUpperCase()}</span>`;
+  // Siempre cargar foto desde la DB para mantener sincronía
+  loadUserPhoto();
+}
+
+async function loadUserPhoto(){
+  try{
+    const res=await fetch('/api/user/photo',{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    if(data.foto){
+      localStorage.setItem('ecosort_photo',data.foto);
+      setAvatarPhoto(data.foto);
+    } else {
+      localStorage.removeItem('ecosort_photo');
+    }
+  }catch(e){
+    // Fallback al caché local si el fetch falla
+    const cached=localStorage.getItem('ecosort_photo');
+    if(cached)setAvatarPhoto(cached);
+  }
+}
+
+function setAvatarPhoto(url){
+  // Nav avatar
+  const wrap=document.getElementById('nav-avatar-wrap');
+  wrap.innerHTML=`<img src="${url}" alt="avatar" style="width:34px;height:34px;border-radius:50%;object-fit:cover;display:block;">`;
+  // Settings avatar
+  const sa=document.getElementById('settings-avatar');
+  if(sa)sa.innerHTML=`<img src="${url}" alt="avatar" style="width:60px;height:60px;border-radius:50%;object-fit:cover;display:block;">`;
+}
+
+/* ── HAMBURGER + SIDEBAR animado ── */
+const ham=document.getElementById('hamburger');
+const sidebarEl=document.getElementById('sidebar');
+const overlayEl=document.getElementById('sidebar-overlay');
+ham.addEventListener('click',()=>{
+  ham.classList.toggle('open');
+  sidebarEl.classList.toggle('open');
+  overlayEl.classList.toggle('open');
+  // Bloquear scroll del body mientras sidebar abierto
+  document.body.style.overflow=sidebarEl.classList.contains('open')?'hidden':'';
+});
+overlayEl.addEventListener('click',closeSidebar);
+function closeSidebar(){
+  ham.classList.remove('open');
+  sidebarEl.classList.remove('open');
+  overlayEl.classList.remove('open');
+  document.body.style.overflow='';
+}
+
+/* ── TRANSICIÓN SUAVE A ABOUT ── */
+document.getElementById('about-sidebar-btn').addEventListener('click',()=>{
+  // Guardar qué tab estaba activo para volver al regresar
+  sessionStorage.setItem('ecosort_last_tab','machine');
+  document.body.classList.add('leaving');
+  setTimeout(()=>{window.location.href='about.html';},300);
+});
+document.getElementById('about-link').addEventListener('click',(e)=>{
+  e.preventDefault();
+  document.body.classList.add('leaving');
+  setTimeout(()=>{window.location.href='about.html';},300);
+});
+
+/* ── TABS ── */
+let activeTab='machine';
+function switchTab(name,el){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  activeTab=name;
+  closeSidebar();
+  if(name==='achievements')renderAchievements();
+  if(name==='history')loadHistoryFull();
+  if(name==='leaderboard')loadLeaderboard('full');
+  if(name==='overview')loadLeaderboard('mini');
+}
+
+/* Restaurar tab si venimos de about */
+const savedTab=sessionStorage.getItem('ecosort_last_tab');
+if(savedTab&&document.getElementById('tab-'+savedTab)){
+  const btn=document.querySelector(`[data-tab="${savedTab}"]`);
+  switchTab(savedTab,btn);
+  sessionStorage.removeItem('ecosort_last_tab');
+}
+
+/* ── TOAST ── */
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.innerHTML=msg;
+  el.className='toast';
+  if(type)el.classList.add(type);
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3500);
+}
+
+/* ── LOGOUT ── */
+document.getElementById('logout-btn').onclick=()=>{
+  localStorage.removeItem('ecosort_token');
+  localStorage.removeItem('ecosort_user');
+  localStorage.removeItem('ecosort_photo');
+  window.location.href='/';
+};
+
+/* ── BADGE MAP ── */
+const badgeMap={PLASTICO:'b-plastic',CARTON:'b-carton',METAL:'b-metal',UNICEL:'b-unicel',VIDRIO:'b-vidrio',ESPECIAL:'b-especial',PAPEL:'b-papel',PLASTIC:'b-plastic',CARDBOARD:'b-carton',GLASS:'b-vidrio',PAPER:'b-papel'};
+function histRow(r){
+  return `<tr>
+    <td>${r.material_detectado}</td>
+    <td><span class="badge ${badgeMap[r.categoria]||'b-plastic'}">${r.categoria}</span></td>
+    <td>${(r.confianza*100).toFixed(1)}%</td>
+    <td style="color:var(--amber);font-weight:700;">+${r.xp_ganado} XP</td>
+    <td style="color:var(--text-3);font-size:0.78rem;">${new Date(r.fecha).toLocaleString()}</td>
+  </tr>`;
+}
+
+/* ── LOAD STATS con animación bump ── */
+async function loadStats(){
+  try{
+    const res=await fetch('/api/user/stats',{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    if(data.xp!==undefined){
+      animateVal('total-xp',data.xp);
+      animateVal(null,data.xp,'nav-xp');
+      animateVal('total-recycled',data.total_reciclados||0);
+      document.getElementById('user-rank').textContent='#'+(data.rank||'—');
+      // Bump en pill de XP
+      document.getElementById('xp-pill').classList.remove('bump');
+      void document.getElementById('xp-pill').offsetWidth;
+      document.getElementById('xp-pill').classList.add('bump');
+      // Actualizar logros automáticamente con los nuevos stats
+      if(document.getElementById('tab-achievements').classList.contains('active')){
+        renderAchievements();
+      }
+    }
+  }catch(e){}
+}
+function animateVal(elId,val,navId){
+  if(elId){
+    const el=document.getElementById(elId);
+    el.textContent=val;
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+  if(navId)document.getElementById(navId).textContent=val;
+}
+
+async function loadHistoryMini(){
+  try{
+    const res=await fetch('/api/user/history',{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    if(data.registros?.length){
+      document.getElementById('history-mini-tbody').innerHTML=data.registros.slice(0,5).map(histRow).join('');
+    }
+  }catch(e){}
+}
+async function loadHistoryFull(){
+  try{
+    const res=await fetch('/api/user/history',{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    const tb=document.getElementById('history-full-tbody');
+    if(data.registros?.length){tb.innerHTML=data.registros.map(histRow).join('');}
+    else{tb.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:2rem;font-size:0.85rem;">${currentLang==='es'?'Sin registros aún':'No records yet'}</td></tr>`;}
+  }catch(e){}
+}
+
+function lbRowHTML(u,i){
+  const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+  const imgEl=u.foto?`<img src="${u.foto}" alt="${u.nombre}">`:(u.nombre[0]||'?').toUpperCase();
+  return `<div class="lb-row">
+    <div class="lb-rank${i<3?' gold':''}">${medal}</div>
+    <div class="lb-avatar">${imgEl}</div>
+    <div class="lb-name">${u.nombre}</div>
+    <div class="lb-pts">${u.xp} XP</div>
+  </div>`;
+}
+async function loadLeaderboard(type='mini'){
+  try{
+    const res=await fetch('/api/leaderboard');
+    const data=await res.json();
+    const users=data.users||[];
+    if(type==='mini'||type==='both'){
+      document.getElementById('lb-mini').innerHTML=users.length?users.slice(0,5).map((u,i)=>lbRowHTML(u,i)).join(''):`<div class="result-empty">${currentLang==='es'?'Sin datos':'No data'}</div>`;
+    }
+    if(type==='full'||type==='both'){
+      document.getElementById('lb-full').innerHTML=users.length?users.map((u,i)=>lbRowHTML(u,i)).join(''):`<div class="result-empty">${currentLang==='es'?'Sin datos':'No data'}</div>`;
+    }
+  }catch(e){}
+}
+
+/* ── ACHIEVEMENTS ── */
+const ACHIEVEMENTS=[
+  {icon:'♻️',name:{es:'Primer reciclaje',en:'First recycle'},desc:{es:'Clasifica tu primer objeto',en:'Classify your first item'},key:'first'},
+  {icon:'🔟',name:{es:'10 objetos',en:'10 objects'},desc:{es:'Llega a 10 reciclados',en:'Reach 10 recycled'},key:'ten'},
+  {icon:'💯',name:{es:'100 objetos',en:'100 objects'},desc:{es:'¡100 reciclados!',en:'100 recycled!'},key:'hundred'},
+  {icon:'⚡',name:{es:'100 XP',en:'100 XP'},desc:{es:'Acumula 100 XP',en:'Earn 100 XP'},key:'xp100'},
+  {icon:'🏆',name:{es:'Top 3',en:'Top 3'},desc:{es:'Entra al top 3',en:'Reach top 3'},key:'top3'},
+  {icon:'🌍',name:{es:'Eco Warrior',en:'Eco Warrior'},desc:{es:'500 XP acumulados',en:'500 XP earned'},key:'xp500'},
+];
+function renderAchievements(){
+  const stats={recycled:parseInt(document.getElementById('total-recycled').textContent)||0,xp:parseInt(document.getElementById('total-xp').textContent)||0,rank:parseInt((document.getElementById('user-rank').textContent||'#99').replace('#',''))||99};
+  const unlocked={first:stats.recycled>=1,ten:stats.recycled>=10,hundred:stats.recycled>=100,xp100:stats.xp>=100,top3:stats.rank<=3,xp500:stats.xp>=500};
+  document.getElementById('ach-grid').innerHTML=ACHIEVEMENTS.map(a=>`
+    <div class="ach-item${unlocked[a.key]?'':' locked'}">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-name">${a.name[currentLang]}</div>
+      <div class="ach-desc">${a.desc[currentLang]}</div>
+    </div>`).join('');
+}
+
+/* ── SOCKET.IO ── */
+let socket,linkedCode=null;
+try{
+  socket=io({auth:{token}});
+
+  socket.on('clasificacion_resultado',data=>{
+    // Resultado en tiempo real — actualizar en AMBAS pestañas
+    const html=`<div class="result-big">
+      <div class="result-cat">${data.categoria}</div>
+      <div class="result-mat">${data.material||''}</div>
+      <div class="result-conf">${data.confianza?(data.confianza*100).toFixed(1)+'% '+(currentLang==='es'?'confianza':'confidence'):''}</div>
+      <div class="result-xp">${data.xp_ganado?'+'+data.xp_ganado+' XP ⚡':''}</div>
+    </div>`;
+    document.getElementById('result-content-machine').innerHTML=html;
+    document.getElementById('result-content').innerHTML=html;
+
+    if(data.xp_ganado){
+      toast(`<strong>${data.categoria}</strong> — <strong>+${data.xp_ganado} XP</strong>`, 'xp');
+    }
+    // Actualizar todo en tiempo real
+    loadStats();
+    loadHistoryMini();
+    loadLeaderboard('mini');
+    renderAchievements(); // logros en tiempo real
+    // Quitar overlay de scan
+    document.getElementById('scan-overlay').classList.remove('active');
+  });
+
+  socket.on('camera_frame',data=>{
+    if(!linkedCode) return; // ignorar frames si no hay conexión activa
+    const img=document.getElementById('cam-img');
+    img.src='data:image/jpeg;base64,'+data.frame;
+    img.style.display='block';
+    document.getElementById('cam-placeholder').style.display='none';
+    document.getElementById('live-badge').classList.add('show');
+  });
+
+  // Sesión terminada por inactividad o botón en máquina
+  // Estado de máquina en tiempo real
+  socket.on('machine_state_change', data => {
+    // Si cambia el estado de la máquina vinculada, actualizar UI
+    if (linkedCode && data.codigo === linkedCode) {
+      if (data.estado === 'apagado') {
+        resetMachineUI();
+        showSessionBanner(currentLang==='es'?'La máquina se apagó o desconectó':'The machine disconnected');
+      }
+    }
+  });
+
+  socket.on('sesion_terminada',data=>{
+    const motivos={
+      inactividad:{es:'La sesión se cerró por inactividad (3 min sin actividad)',en:'Session closed due to inactivity (3 min)'},
+      maquina:{es:'La sesión fue detenida desde la máquina',en:'Session was stopped from the machine'},
+      usuario:{es:'Sesión desvinculada',en:'Session unlinked'}
+    };
+    const msg=(motivos[data.motivo]||{es:'Sesión terminada',en:'Session ended'})[currentLang];
+    showSessionBanner(msg);
+    resetMachineUI();
+  });
+
+}catch(e){console.log('Socket.IO no disponible');}
+
+function showSessionBanner(msg){
+  const b=document.getElementById('session-banner');
+  b.textContent=msg;
+  b.classList.add('show');
+  setTimeout(()=>b.classList.remove('show'),6000);
+}
+
+function resetMachineUI(){
+  linkedCode=null;
+  document.getElementById('status-dot').classList.remove('on');
+  document.getElementById('status-dot').classList.add('pulse');
+  document.getElementById('code-input').value='';
+  document.getElementById('status-text').textContent=currentLang==='es'?'Sin máquina vinculada':'No machine linked';
+  document.getElementById('status-code').textContent='';
+  document.getElementById('btn-desvincular').style.display='none';
+  // Limpiar cámara — forzar limpieza completa sin necesitar refresh manual
+  const camImg=document.getElementById('cam-img');
+  camImg.src='about:blank';  // fuerza al browser a soltar el frame anterior
+  camImg.removeAttribute('src');
+  camImg.style.display='none';
+  // Forzar reflow para que el browser aplique el cambio inmediatamente
+  void camImg.offsetWidth;
+  document.getElementById('cam-placeholder').style.display='flex';
+  document.getElementById('live-badge').classList.remove('show');
+  document.getElementById('scan-overlay').classList.remove('active');
+}
+
+/* ── LINK MACHINE ── */
+document.getElementById('btn-vincular').onclick=async()=>{
+  const code=document.getElementById('code-input').value.trim().toUpperCase();
+  if(!code){
+    toast(currentLang==='es'?'Ingresa el código de la máquina':'Enter the machine code','err');
+    return;
+  }
+  try{
+    const res=await fetch('/api/machine/link',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({codigo:code})});
+    const data=await res.json();
+    if(data.success){
+      linkedCode=code;
+      document.getElementById('status-dot').classList.remove('pulse');
+      document.getElementById('status-dot').classList.add('on');
+      document.getElementById('status-text').textContent=currentLang==='es'?'Máquina vinculada':'Machine linked';
+      document.getElementById('status-code').textContent=code;
+      document.getElementById('btn-desvincular').style.display='block';
+      document.getElementById('session-banner').classList.remove('show');
+      toast(`<strong>${code}</strong> ${currentLang==='es'?'vinculada ✓':'linked ✓'}`);
+      if(socket)socket.emit('vincular_usuario',{codigo:code,usuario:user});
+    } else {
+      toast(data.message||(currentLang==='es'?'Código no encontrado':'Code not found'),'err');
+    }
+  }catch(e){toast(currentLang==='es'?'Error de conexión':'Connection error','err');}
+};
+
+document.getElementById('btn-desvincular').onclick=async()=>{
+  if(!linkedCode)return;
+  try{await fetch('/api/machine/unlink',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({codigo:linkedCode})});}catch(e){}
+  resetMachineUI();
+  toast(currentLang==='es'?'Máquina desvinculada':'Machine unlinked');
+};
+
+document.getElementById('code-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-vincular').click();});
+
+/* ── SETTINGS PHOTO ── */
+document.querySelector('label[data-i18n="set.changePhoto"]').addEventListener('click',()=>document.getElementById('settings-photo-input').click());
+document.getElementById('settings-photo-input').addEventListener('change',async function(){
+  const file=this.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const b64=e.target.result;
+    try{
+      await fetch('/api/user/photo',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({photo:b64})});
+      // Actualizar localStorage y todos los avatares al mismo tiempo
+      localStorage.setItem('ecosort_photo',b64);
+      setAvatarPhoto(b64);
+      toast(currentLang==='es'?'Foto actualizada ✓':'Photo updated ✓');
+    }catch(e){
+      toast(currentLang==='es'?'Error al guardar la foto':'Error saving photo','err');
+    }
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ── i18n ── */
+const i18n={
+  es:{'nav.dash':'Dashboard','nav.about':'Nosotros','nav.logout':'Salir','sb.main':'Principal','sb.machine':'Máquina & Cámara','sb.dashboard':'Resumen','sb.profile':'Mi Perfil','sb.ach':'Mis Logros','sb.hist':'Historial','sb.lb':'Leaderboard','sb.sys':'Sistema','sb.about':'Acerca de','sb.settings':'Configuración','mc.title':'Máquina & Cámara en vivo','lk.card':'ECO-SORT Machine','lk.noMachine':'Sin máquina vinculada','lk.hint':'Ingresa el código ECO-XXX que aparece en la pantalla de la máquina.','lk.link':'Vincular','lk.unlink':'Desvincular','cam.title':'Cámara en vivo','cam.noMachine':'Vincula una máquina para ver la cámara','ov.title':'Resumen de actividad','ov.recycled':'Reciclados','ov.xp':'Puntos XP','ov.rank':'Ranking','ov.lastResult':'Último resultado','ov.topRecyclers':'Top recicladores','ov.recent':'Clasificaciones recientes','ov.noResult':'El resultado aparecerá aquí automáticamente','ov.loading':'Cargando...','ach.title':'Mis logros','hist.title':'Historial completo','lb.title':'Leaderboard global','h.material':'Material','h.cat':'Categoría','h.conf':'Confianza','h.xp':'XP','h.date':'Fecha','h.empty':'Sin registros aún','set.title':'Configuración','set.profile':'Perfil','set.changePhoto':'Cambiar foto de perfil','set.lang':'Idioma'},
+  en:{'nav.dash':'Dashboard','nav.about':'About','nav.logout':'Log out','sb.main':'Main','sb.machine':'Machine & Camera','sb.dashboard':'Summary','sb.profile':'My Profile','sb.ach':'Achievements','sb.hist':'History','sb.lb':'Leaderboard','sb.sys':'System','sb.about':'About','sb.settings':'Settings','mc.title':'Machine & Live Camera','lk.card':'ECO-SORT Machine','lk.noMachine':'No machine linked','lk.hint':'Enter the ECO-XXX code shown on the machine screen.','lk.link':'Link','lk.unlink':'Unlink','cam.title':'Live camera','cam.noMachine':'Link a machine to see the camera','ov.title':'Activity summary','ov.recycled':'Recycled','ov.xp':'XP Points','ov.rank':'Ranking','ov.lastResult':'Last result','ov.topRecyclers':'Top recyclers','ov.recent':'Recent classifications','ov.noResult':'The result will appear here automatically','ov.loading':'Loading...','ach.title':'My achievements','hist.title':'Full history','lb.title':'Global leaderboard','h.material':'Material','h.cat':'Category','h.conf':'Confidence','h.xp':'XP','h.date':'Date','h.empty':'No records yet','set.title':'Settings','set.profile':'Profile','set.changePhoto':'Change profile photo','set.lang':'Language'}
+};
+let currentLang=localStorage.getItem('ecosort_lang')||'es';
+function setLang(lang){
+  currentLang=lang;localStorage.setItem('ecosort_lang',lang);
+  document.documentElement.setAttribute('data-lang',lang);
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang]?.[k])el.textContent=i18n[lang][k];});
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===lang.toUpperCase()));
+  initUserUI();
+}
+setLang(currentLang);
+
+/* ── INIT ── */
+loadStats();
+loadHistoryMini();
+loadLeaderboard('mini');
+</script>
+</body>
+</html>

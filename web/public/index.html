@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECO-SORT — Clasificación Inteligente de Residuos</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300c27c'/><text y='.9em' font-size='75' x='10'>♻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#00c27c;--green-light:#00e89a;--green-dark:#009960;
+  --green-soft:rgba(0,194,124,0.10);
+  --blue:#3b82f6;--purple:#8b5cf6;
+  --bg:#f0fdf6;--bg-card:#ffffff;--bg-nav:rgba(255,255,255,0.82);
+  --text:#0d1f17;--text-2:#3d6b55;--text-3:#6b9e84;
+  --border:rgba(0,194,124,0.18);
+  --shadow:0 4px 24px rgba(0,0,0,0.07);--shadow-lg:0 12px 40px rgba(0,0,0,0.10);
+  --radius:16px;--radius-sm:10px;--font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.55;}
+
+/* ── NAV (consistente con about/dashboard) ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2rem;height:64px;
+  background:var(--bg-nav);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--border);
+  transition:box-shadow 0.3s;
+}
+nav.scrolled{box-shadow:var(--shadow);}
+.nav-logo{display:flex;align-items:center;gap:0.5rem;font-size:1.2rem;font-weight:700;color:var(--text);text-decoration:none;letter-spacing:-0.02em;}
+.nav-logo .leaf{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,194,124,0.35);}
+.brand-eco{color:var(--green);} .brand-sort{color:var(--text-2);font-weight:400;}
+
+/* Nav links — mismo orden: Features · About */
+.nav-links{display:flex;align-items:center;gap:1.5rem;}
+.nav-links a{color:var(--text-2);text-decoration:none;font-size:0.875rem;font-weight:500;transition:color 0.2s;}
+.nav-links a:hover{color:var(--green);}
+
+.nav-right{display:flex;align-items:center;gap:0.6rem;}
+.lang-toggle{display:flex;align-items:center;gap:0.3rem;background:var(--green-soft);border:1.5px solid var(--border);border-radius:50px;padding:0.25rem 0.4rem;}
+.lang-btn{background:transparent;border:none;color:var(--text-3);font-size:0.75rem;font-weight:600;cursor:pointer;padding:0.2rem 0.5rem;border-radius:50px;transition:all 0.2s;}
+.lang-btn.active{background:var(--green);color:#fff;}
+.btn-nav-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text);padding:0.45rem 1.1rem;border-radius:50px;font-size:0.85rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all 0.2s;white-space:nowrap;}
+.btn-nav-ghost:hover{border-color:var(--green);color:var(--green);background:var(--green-soft);}
+.btn-nav-fill{background:linear-gradient(135deg,var(--green),var(--green-light));border:none;color:#fff;padding:0.5rem 1.3rem;border-radius:50px;font-size:0.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.2s;box-shadow:0 2px 12px rgba(0,194,124,0.35);white-space:nowrap;}
+.btn-nav-fill:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,194,124,0.45);}
+
+/* Hamburger */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;border:none;background:transparent;}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all 0.3s;}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+
+/* Mobile menu con animación */
+.mobile-menu{
+  display:flex;flex-direction:column;gap:0;
+  position:fixed;top:64px;left:0;right:0;
+  background:var(--bg-nav);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;z-index:99;
+  max-height:0;overflow:hidden;
+  transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1),padding 0.3s;
+  pointer-events:none;
+}
+.mobile-menu.open{max-height:400px;padding:1.2rem 2rem 1.5rem;pointer-events:all;}
+.mobile-menu a{
+  color:var(--text-2);text-decoration:none;font-size:0.95rem;font-weight:500;
+  padding:0.6rem 0;border-bottom:1px solid var(--border);
+  opacity:0;transform:translateY(-8px);
+  transition:opacity 0.25s,transform 0.25s,color 0.2s;
+}
+.mobile-menu.open a{opacity:1;transform:translateY(0);}
+.mobile-menu.open a:nth-child(1){transition-delay:0.05s;}
+.mobile-menu.open a:nth-child(2){transition-delay:0.1s;}
+.mobile-menu.open a:nth-child(3){transition-delay:0.15s;}
+.mobile-menu.open a:nth-child(4){transition-delay:0.2s;}
+.mobile-menu.open a:last-of-type{border-bottom:none;}
+.mobile-menu a:hover{color:var(--green);}
+.mobile-btns{
+  display:flex;gap:0.5rem;flex-wrap:wrap;padding-top:0.8rem;
+  opacity:0;transform:translateY(-8px);
+  transition:opacity 0.25s 0.25s,transform 0.25s 0.25s;
+}
+.mobile-menu.open .mobile-btns{opacity:1;transform:translateY(0);}
+.mobile-lang{
+  display:flex;padding-top:0.5rem;
+  opacity:0;transform:translateY(-8px);
+  transition:opacity 0.25s 0.3s,transform 0.25s 0.3s;
+}
+.mobile-menu.open .mobile-lang{opacity:1;transform:translateY(0);}
+
+/* ── HERO ── */
+.hero{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;padding:8rem 2rem 5rem;max-width:820px;margin:0 auto;}
+.hero-badge{display:inline-flex;align-items:center;gap:0.4rem;background:var(--green-soft);border:1.5px solid var(--border);color:var(--green-dark);padding:0.35rem 1rem;border-radius:50px;font-size:0.8rem;font-weight:600;margin-bottom:2rem;animation:fadeDown 0.7s ease both;}
+.hero h1{font-size:clamp(2.4rem,5.5vw,4.2rem);font-weight:700;line-height:1.12;letter-spacing:-0.03em;margin-bottom:1.4rem;animation:fadeDown 0.7s 0.1s ease both;}
+.hero h1 .accent{background:linear-gradient(135deg,var(--green),#00a8e6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{font-size:1.1rem;color:var(--text-2);line-height:1.75;max-width:560px;margin:0 auto 2.5rem;animation:fadeDown 0.7s 0.2s ease both;}
+.hero-cta{display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap;animation:fadeDown 0.7s 0.3s ease both;}
+.btn-primary{background:linear-gradient(135deg,var(--green),var(--green-light));color:#fff;border:none;padding:0.8rem 2rem;border-radius:50px;font-size:0.95rem;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:0 4px 18px rgba(0,194,124,0.35);transition:all 0.25s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,194,124,0.45);}
+.btn-outline{background:var(--bg-card);color:var(--text);border:1.5px solid var(--border);padding:0.8rem 2rem;border-radius:50px;font-size:0.95rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.25s;}
+.btn-outline:hover{border-color:var(--green);color:var(--green);background:var(--green-soft);}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── STATS ── */
+.stats-bar{position:relative;z-index:10;display:flex;justify-content:center;flex-wrap:wrap;gap:1px;max-width:700px;margin:0 auto 5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;animation:fadeUp 0.7s 0.4s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.stat-item{flex:1;min-width:140px;display:flex;flex-direction:column;align-items:center;padding:1.5rem 1rem;background:var(--bg-card);border-right:1px solid var(--border);}
+.stat-item:last-child{border-right:none;}
+.stat-value{font-size:1.9rem;font-weight:700;color:var(--green);letter-spacing:-0.03em;}
+.stat-label{font-size:0.75rem;color:var(--text-3);margin-top:0.2rem;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;}
+
+/* ── FEATURES ── */
+.section{position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:4rem 2rem;}
+.section-label{display:inline-block;font-size:0.75rem;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.1em;background:var(--green-soft);padding:0.25rem 0.8rem;border-radius:50px;margin-bottom:1rem;}
+.section h2{font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;letter-spacing:-0.03em;line-height:1.15;margin-bottom:1.2rem;}
+.section .subtitle{font-size:1rem;color:var(--text-2);max-width:520px;line-height:1.7;}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:3rem;}
+@media(max-width:750px){.features-grid{grid-template-columns:1fr;}}
+@media(min-width:751px) and (max-width:1000px){.features-grid{grid-template-columns:repeat(2,1fr);}}
+.feat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.8rem;box-shadow:var(--shadow);transition:transform 0.25s,box-shadow 0.25s;}
+.feat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+.feat-icon{width:44px;height:44px;border-radius:12px;background:var(--green-soft);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:1rem;}
+.feat-card h3{font-size:1rem;font-weight:600;margin-bottom:0.5rem;}
+.feat-card p{font-size:0.875rem;color:var(--text-2);line-height:1.65;}
+.feat-chips{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:1rem;}
+.chip{background:var(--green-soft);border:1px solid var(--border);color:var(--green-dark);padding:0.2rem 0.6rem;border-radius:50px;font-size:0.72rem;font-weight:600;}
+
+footer{position:relative;z-index:10;text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--border);color:var(--text-3);font-size:0.82rem;}
+footer span{color:var(--green);font-weight:600;}
+
+@media(max-width:768px){
+  .nav-links{display:none;}
+  .nav-right .btn-nav-ghost,.nav-right .btn-nav-fill{display:none;}
+  .hamburger{display:flex;}
+  .hero{padding:7rem 1.5rem 3rem;}
+  .stats-bar{margin:0 1.5rem 3rem;border-radius:var(--radius-sm);}
+  .stat-item{min-width:120px;padding:1.2rem 0.8rem;}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<nav id="navbar">
+  <a href="index.html" class="nav-logo">
+    <div class="leaf">♻</div>
+    <span><span class="brand-eco">ECO</span><span class="brand-sort">-SORT</span></span>
+  </a>
+
+  <!-- Links consistentes: Features · About (mismo orden en todas las páginas) -->
+  <div class="nav-links">
+    <a href="#features" data-i18n="nav.features">Características</a>
+    <a href="about.html" data-i18n="nav.about">Nosotros</a>
+  </div>
+
+  <div class="nav-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+    <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Iniciar sesión</a>
+    <a href="register.html" class="btn-nav-ghost" data-i18n="nav.register">Crear cuenta</a>
+    <a href="#" id="launch-btn" class="btn-nav-fill" data-i18n="nav.launch">⚡ Launch Project</a>
+  </div>
+
+  <button class="hamburger" id="hamburger" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile menu con animación suave -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#features" data-i18n="nav.features">Características</a>
+  <a href="about.html" data-i18n="nav.about">Nosotros</a>
+  <div class="mobile-btns">
+    <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Iniciar sesión</a>
+    <a href="register.html" class="btn-nav-ghost" data-i18n="nav.register">Crear cuenta</a>
+    <a href="#" id="launch-btn-mob" class="btn-nav-fill" data-i18n="nav.launch">⚡ Launch Project</a>
+  </div>
+  <div class="mobile-lang">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</div>
+
+<main style="position:relative;z-index:10;">
+  <div class="hero">
+    <div class="hero-badge">♻ IA + IoT + GCP Vertex AI</div>
+    <h1><span data-i18n="hero.title1">La máquina que</span> <span class="accent" data-i18n="hero.title2">clasifica</span><br><span data-i18n="hero.title3">por ti</span></h1>
+    <p data-i18n="hero.desc">ECO-SORT combina visión artificial en la nube, hardware IoT y gamificación para hacer el reciclaje inteligente, automático y divertido.</p>
+    <div class="hero-cta">
+      <a href="register.html" class="btn-primary" data-i18n="hero.cta1">Crear cuenta gratis</a>
+      <a href="about.html" class="btn-outline" data-i18n="hero.cta2">Ver cómo funciona</a>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-value">91.28%</div><div class="stat-label" data-i18n="stat.accuracy">Precisión IA</div></div>
+    <div class="stat-item"><div class="stat-value">11</div><div class="stat-label" data-i18n="stat.classes">Clases de residuos</div></div>
+    <div class="stat-item"><div class="stat-value">&lt;2s</div><div class="stat-label" data-i18n="stat.speed">Tiempo respuesta</div></div>
+    <div class="stat-item"><div class="stat-value">4</div><div class="stat-label" data-i18n="stat.bins">Contenedores</div></div>
+  </div>
+
+  <div class="section" id="features">
+    <span class="section-label" data-i18n="feat.label">Tecnología</span>
+    <h2 data-i18n="feat.title">Todo lo que necesitas<br>para reciclar mejor</h2>
+    <p class="subtitle" data-i18n="feat.sub">Conecta tu máquina, escanea residuos, gana puntos y compite con otros recicladores en tiempo real.</p>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🔧</div>
+        <h3 data-i18n="feat1.title">Hardware IoT</h3>
+        <p data-i18n="feat1.desc">Raspberry Pi + Arduino controlan 4 servos MG996R para dirigir cada residuo al contenedor correcto automáticamente.</p>
+        <div class="feat-chips"><span class="chip">Raspberry Pi</span><span class="chip">Arduino</span><span class="chip">Servo MG996R</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">☁️</div>
+        <h3 data-i18n="feat2.title">Visión Artificial</h3>
+        <p data-i18n="feat2.desc">GCP Vertex AI con GPU NVIDIA T4 corre SigLIP2 para clasificar 11 tipos de materiales en menos de 2 segundos.</p>
+        <div class="feat-chips"><span class="chip">GCP Vertex AI</span><span class="chip">SigLIP2</span><span class="chip">NVIDIA T4</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🏆</div>
+        <h3 data-i18n="feat3.title">Gamificación</h3>
+        <p data-i18n="feat3.desc">Gana puntos XP en cada clasificación, sube en el leaderboard global y consulta tu historial en tiempo real.</p>
+        <div class="feat-chips"><span class="chip">XP Points</span><span class="chip">Leaderboard</span><span class="chip">Socket.io</span></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer><p>ECO-SORT &copy; 2025 — Powered by <span>GCP Vertex AI</span> + <span>SigLIP2</span> + <span>Socket.io</span></p></footer>
+
+<script>
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H;function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+const particles=Array.from({length:55},()=>({x:Math.random()*2000,y:Math.random()*1200,vx:(Math.random()-0.5)*0.25,vy:(Math.random()-0.5)*0.25,r:Math.random()*2.5+0.8}));
+let t=0;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  for(let i=0;i<10;i++){ctx.beginPath();ctx.strokeStyle=`rgba(0,194,124,${0.045+i*0.006})`;ctx.lineWidth=1.2;for(let x=0;x<W;x+=3){const y=H*0.5+Math.sin(x/W*5+t*0.012+i*0.8)*(22+i*16);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();}
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(0,194,124,0.22)';ctx.fill();});
+  t++;requestAnimationFrame(draw);
+}
+draw();
+
+window.addEventListener('scroll',()=>{document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>20);});
+
+const ham=document.getElementById('hamburger'),mob=document.getElementById('mobile-menu');
+ham.addEventListener('click',()=>{ham.classList.toggle('open');mob.classList.toggle('open');});
+// Cerrar mobile menu al hacer clic en un link
+mob.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{ham.classList.remove('open');mob.classList.remove('open');}));
+
+function handleLaunch(e){e.preventDefault();window.location.href=localStorage.getItem('ecosort_token')?'dashboard.html':'login.html';}
+document.getElementById('launch-btn').addEventListener('click',handleLaunch);
+const mobLaunch=document.getElementById('launch-btn-mob');
+if(mobLaunch)mobLaunch.addEventListener('click',handleLaunch);
+
+const i18n={
+  es:{'nav.features':'Características','nav.about':'Nosotros','nav.login':'Iniciar sesión','nav.register':'Crear cuenta','nav.launch':'⚡ Launch Project','hero.title1':'La máquina que','hero.title2':'clasifica','hero.title3':'por ti','hero.desc':'ECO-SORT combina visión artificial en la nube, hardware IoT y gamificación para hacer el reciclaje inteligente, automático y divertido.','hero.cta1':'Crear cuenta gratis','hero.cta2':'Ver cómo funciona','stat.accuracy':'Precisión IA','stat.classes':'Clases de residuos','stat.speed':'Tiempo respuesta','stat.bins':'Contenedores','feat.label':'Tecnología','feat.title':'Todo lo que necesitas para reciclar mejor','feat.sub':'Conecta tu máquina, escanea residuos, gana puntos y compite con otros recicladores en tiempo real.','feat1.title':'Hardware IoT','feat1.desc':'Raspberry Pi + Arduino controlan 4 servos MG996R para dirigir cada residuo al contenedor correcto automáticamente.','feat2.title':'Visión Artificial','feat2.desc':'GCP Vertex AI con GPU NVIDIA T4 corre SigLIP2 para clasificar 11 tipos de materiales en menos de 2 segundos.','feat3.title':'Gamificación','feat3.desc':'Gana puntos XP en cada clasificación, sube en el leaderboard global y consulta tu historial en tiempo real.'},
+  en:{'nav.features':'Features','nav.about':'About','nav.login':'Log in','nav.register':'Sign up','nav.launch':'⚡ Launch Project','hero.title1':'The machine that','hero.title2':'sorts','hero.title3':'for you','hero.desc':'ECO-SORT combines cloud-based computer vision, IoT hardware, and gamification to make recycling smart, automatic, and fun.','hero.cta1':'Create free account','hero.cta2':'See how it works','stat.accuracy':'AI Accuracy','stat.classes':'Waste classes','stat.speed':'Response time','stat.bins':'Bins','feat.label':'Technology','feat.title':'Everything you need to recycle smarter','feat.sub':'Connect your machine, scan waste, earn XP points and compete with other recyclers in real time.','feat1.title':'IoT Hardware','feat1.desc':'Raspberry Pi + Arduino control 4 MG996R servos to automatically route each waste item to the correct bin.','feat2.title':'Computer Vision','feat2.desc':'GCP Vertex AI with NVIDIA T4 GPU runs SigLIP2 to classify 11 material types in under 2 seconds.','feat3.title':'Gamification','feat3.desc':'Earn XP points on every scan, climb the global leaderboard and track your history in real time.'}
+};
+let currentLang=localStorage.getItem('ecosort_lang')||'es';
+function setLang(lang){
+  currentLang=lang;localStorage.setItem('ecosort_lang',lang);
+  document.documentElement.setAttribute('data-lang',lang);
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang]?.[k])el.textContent=i18n[lang][k];});
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===lang.toUpperCase()));
+}
+setLang(currentLang);
+</script>
+</body>
+</html>

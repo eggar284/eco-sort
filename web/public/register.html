@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECO-SORT — Crear cuenta</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300c27c'/><text y='.9em' font-size='75' x='10'>♻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#00c27c;--green-light:#00e89a;--green-dark:#009960;
+  --green-soft:rgba(0,194,124,0.10);
+  --bg:#f0fdf6;--bg-card:#ffffff;--bg-nav:rgba(255,255,255,0.82);
+  --text:#0d1f17;--text-2:#3d6b55;--text-3:#6b9e84;
+  --border:rgba(0,194,124,0.18);--error:#ef4444;
+  --shadow:0 4px 24px rgba(0,0,0,0.07);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.12);
+  --radius:16px;--font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.45;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px;background:var(--bg-nav);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);}
+
+.btn-back{display:flex;align-items:center;gap:0.4rem;color:var(--text-2);text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.4rem 0.8rem;border-radius:50px;border:1.5px solid var(--border);transition:all 0.2s;background:transparent;}
+.btn-back:hover{border-color:var(--green);color:var(--green);background:var(--green-soft);}
+.btn-back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+.nav-logo{display:flex;align-items:center;gap:0.5rem;font-size:1.1rem;font-weight:700;color:var(--text);text-decoration:none;letter-spacing:-0.02em;position:absolute;left:50%;transform:translateX(-50%);}
+.nav-logo .leaf{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,194,124,0.35);}
+.brand-eco{color:var(--green);} .brand-sort{color:var(--text-2);font-weight:400;}
+
+.nav-right-area{display:flex;align-items:center;}
+.lang-toggle{display:flex;align-items:center;gap:0.3rem;background:var(--green-soft);border:1.5px solid var(--border);border-radius:50px;padding:0.25rem 0.4rem;}
+.lang-btn{background:transparent;border:none;color:var(--text-3);font-size:0.75rem;font-weight:600;cursor:pointer;padding:0.2rem 0.5rem;border-radius:50px;transition:all 0.2s;}
+.lang-btn.active{background:var(--green);color:#fff;}
+
+.page-wrap{position:relative;z-index:10;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 1.5rem 2rem;}
+
+.auth-card{background:var(--bg-card);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow-lg);padding:2.8rem 2.5rem;width:100%;max-width:480px;animation:cardIn 0.5s ease both;}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(0.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:1.8rem;}
+.auth-logo .leaf{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 14px rgba(0,194,124,0.35);}
+.auth-logo span{font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;}
+.auth-title{font-size:1.6rem;font-weight:700;letter-spacing:-0.03em;text-align:center;margin-bottom:0.3rem;}
+.auth-sub{font-size:0.875rem;color:var(--text-3);text-align:center;margin-bottom:1.8rem;}
+
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;}
+@media(max-width:400px){.row-2{grid-template-columns:1fr;}}
+
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.82rem;font-weight:600;color:var(--text-2);margin-bottom:0.35rem;}
+.form-group input,.form-group select{width:100%;background:#f8fffe;border:1.5px solid var(--border);color:var(--text);padding:0.72rem 1rem;border-radius:10px;font-family:var(--font);font-size:0.95rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,194,124,0.12);}
+.form-group input::placeholder{color:var(--text-3);}
+.form-group input.err{border-color:var(--error);}
+
+.country-wrap{position:relative;}
+.country-search{width:100%;background:#f8fffe;border:1.5px solid var(--border);color:var(--text);padding:0.72rem 1rem;border-radius:10px;font-family:var(--font);font-size:0.95rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;cursor:pointer;}
+.country-search:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,194,124,0.12);}
+.country-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-card);border:1.5px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);z-index:200;max-height:220px;overflow:hidden;display:none;flex-direction:column;}
+.country-dropdown.open{display:flex;}
+.country-filter{padding:0.6rem 0.8rem;border-bottom:1px solid var(--border);}
+.country-filter input{width:100%;background:#f8fffe;border:1.5px solid var(--border);color:var(--text);padding:0.5rem 0.8rem;border-radius:8px;font-family:var(--font);font-size:0.85rem;outline:none;}
+.country-filter input:focus{border-color:var(--green);}
+.country-list{overflow-y:auto;flex:1;}
+.country-opt{padding:0.6rem 1rem;font-size:0.88rem;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;gap:0.5rem;}
+.country-opt:hover{background:var(--green-soft);}
+.country-opt.selected{background:var(--green-soft);color:var(--green-dark);font-weight:600;}
+
+.pass-strength{margin-top:0.35rem;display:flex;gap:4px;align-items:center;}
+.strength-bar{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.3s;}
+.strength-label{font-size:0.72rem;color:var(--text-3);width:50px;text-align:right;}
+
+.btn-submit{width:100%;background:linear-gradient(135deg,var(--green),var(--green-light));color:#fff;border:none;padding:0.85rem;border-radius:10px;font-family:var(--font);font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 4px 18px rgba(0,194,124,0.35);transition:all 0.25s;margin-top:0.5rem;}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,194,124,0.45);}
+.btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+
+.login-row{text-align:center;font-size:0.875rem;color:var(--text-2);margin-top:1.2rem;}
+.login-row a{color:var(--green);font-weight:600;text-decoration:none;}
+.login-row a:hover{text-decoration:underline;}
+
+.msg-error{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:0.7rem 1rem;color:var(--error);font-size:0.85rem;margin-bottom:1rem;display:none;}
+.msg-error.show{display:block;}
+
+/* Modal foto */
+.modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg-card);border-radius:24px;box-shadow:var(--shadow-lg);padding:2.5rem 2rem;width:100%;max-width:400px;text-align:center;transform:scale(0.95);transition:transform 0.3s;}
+.modal-overlay.open .modal-box{transform:scale(1);}
+.modal-icon{font-size:3rem;margin-bottom:1rem;}
+.modal-title{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.4rem;}
+.modal-sub{font-size:0.875rem;color:var(--text-3);margin-bottom:1.8rem;line-height:1.6;}
+.photo-preview{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--green);margin:0 auto 1.2rem;display:block;background:#e8f8f2;}
+.photo-placeholder{width:96px;height:96px;border-radius:50%;background:var(--green-soft);border:2px dashed var(--green);margin:0 auto 1.2rem;display:flex;align-items:center;justify-content:center;font-size:2.5rem;cursor:pointer;}
+.photo-upload-btn{display:inline-block;background:var(--green-soft);border:1.5px solid var(--border);color:var(--green-dark);padding:0.6rem 1.4rem;border-radius:50px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-bottom:1.5rem;transition:all 0.2s;}
+.photo-upload-btn:hover{background:var(--green);color:#fff;}
+#photo-file-input{display:none;}
+.modal-btns{display:flex;gap:0.8rem;flex-direction:column;}
+.btn-modal-primary{background:linear-gradient(135deg,var(--green),var(--green-light));color:#fff;border:none;padding:0.8rem;border-radius:10px;font-family:var(--font);font-size:0.95rem;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(0,194,124,0.3);transition:all 0.2s;}
+.btn-modal-primary:hover{transform:translateY(-1px);}
+.btn-modal-skip{background:transparent;color:var(--text-3);border:1.5px solid var(--border);padding:0.7rem;border-radius:10px;font-family:var(--font);font-size:0.9rem;font-weight:500;cursor:pointer;transition:all 0.2s;}
+.btn-modal-skip:hover{border-color:var(--green);color:var(--green);}
+.optional-badge{display:inline-block;background:rgba(107,158,132,0.15);border:1px solid var(--border);color:var(--text-3);padding:0.15rem 0.6rem;border-radius:50px;font-size:0.72rem;font-weight:600;margin-left:0.4rem;}
+
+@media(max-width:480px){.auth-card{padding:2rem 1.4rem;border-radius:16px;}}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="btn-back" aria-label="Volver al inicio">
+    <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"></polyline></svg>
+    <span data-i18n="nav.back">Inicio</span>
+  </a>
+
+  <a href="index.html" class="nav-logo">
+    <div class="leaf">♻</div>
+    <span><span class="brand-eco">ECO</span><span class="brand-sort">-SORT</span></span>
+  </a>
+
+  <div class="nav-right-area">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="leaf">♻</div>
+      <span><span class="brand-eco">ECO</span><span class="brand-sort">-SORT</span></span>
+    </div>
+    <h1 class="auth-title" data-i18n="reg.title">Crear cuenta</h1>
+    <p class="auth-sub" data-i18n="reg.sub">Únete a la comunidad ECO-SORT</p>
+
+    <div class="msg-error" id="reg-error"></div>
+
+    <form id="reg-form" novalidate>
+      <div class="row-2">
+        <div class="form-group">
+          <label data-i18n="reg.fname">Nombre</label>
+          <input type="text" id="fname" placeholder="Emiliano" required autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label data-i18n="reg.lname">Apellido</label>
+          <input type="text" id="lname" placeholder="García" required autocomplete="family-name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label data-i18n="reg.email">Correo electrónico</label>
+        <input type="email" id="email" placeholder="tu@email.com" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label data-i18n="reg.pass">Contraseña</label>
+        <input type="password" id="password" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" oninput="checkStrength(this.value)">
+        <div class="pass-strength">
+          <div class="strength-bar" id="sb1"></div>
+          <div class="strength-bar" id="sb2"></div>
+          <div class="strength-bar" id="sb3"></div>
+          <div class="strength-bar" id="sb4"></div>
+          <span class="strength-label" id="strength-label"></span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label data-i18n="reg.country">País</label>
+        <div class="country-wrap" id="country-wrap">
+          <input type="text" class="country-search" id="country-display" placeholder="Selecciona tu país..." readonly data-i18n-placeholder="reg.countryPh">
+          <input type="hidden" id="country-value">
+          <div class="country-dropdown" id="country-dropdown">
+            <div class="country-filter"><input type="text" id="country-search-input" placeholder="Buscar país..."></div>
+            <div class="country-list" id="country-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label data-i18n="reg.lang">Idioma preferido</label>
+        <select id="lang-pref">
+          <option value="es">🇲🇽 Español</option>
+          <option value="en">🇺🇸 English</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submit-btn" data-i18n="reg.btn">Crear cuenta</button>
+    </form>
+
+    <div class="login-row">
+      <span data-i18n="reg.have">¿Ya tienes cuenta?</span> <a href="login.html" data-i18n="reg.login">Iniciar sesión →</a>
+    </div>
+  </div>
+</div>
+
+<!-- PHOTO MODAL -->
+<div class="modal-overlay" id="photo-modal">
+  <div class="modal-box">
+    <div class="modal-icon">📸</div>
+    <h2 class="modal-title" data-i18n="photo.title">Foto de perfil</h2>
+    <p class="modal-sub"><span data-i18n="photo.sub">Sube una foto para tu perfil. Se mostrará en el leaderboard.</span> <span class="optional-badge" data-i18n="photo.opt">Opcional</span></p>
+    <div class="photo-placeholder" id="photo-placeholder" onclick="document.getElementById('photo-file-input').click()">🙂</div>
+    <img id="photo-preview" class="photo-preview" src="" style="display:none" alt="preview">
+    <label class="photo-upload-btn" for="photo-file-input" data-i18n="photo.upload">Subir foto</label>
+    <input type="file" id="photo-file-input" accept="image/*">
+    <div class="modal-btns">
+      <button class="btn-modal-primary" id="btn-save-photo" data-i18n="photo.save">Guardar y continuar</button>
+      <button class="btn-modal-skip" id="btn-skip-photo" data-i18n="photo.skip">Continuar sin foto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H;function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+const pts=Array.from({length:40},()=>({x:Math.random()*2000,y:Math.random()*1200,vx:(Math.random()-0.5)*0.2,vy:(Math.random()-0.5)*0.2,r:Math.random()*2+0.5}));
+let t=0;
+function draw(){ctx.clearRect(0,0,W,H);for(let i=0;i<8;i++){ctx.beginPath();ctx.strokeStyle=`rgba(0,194,124,${0.035+i*0.005})`;ctx.lineWidth=1.2;for(let x=0;x<W;x+=3){const y=H*0.5+Math.sin(x/W*5+t*0.011+i*0.85)*(20+i*15);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();}pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(0,194,124,0.18)';ctx.fill();});t++;requestAnimationFrame(draw);}
+draw();
+
+const COUNTRIES=[{code:'MX',flag:'🇲🇽',name:{es:'México',en:'Mexico'}},{code:'US',flag:'🇺🇸',name:{es:'Estados Unidos',en:'United States'}},{code:'ES',flag:'🇪🇸',name:{es:'España',en:'Spain'}},{code:'AR',flag:'🇦🇷',name:{es:'Argentina',en:'Argentina'}},{code:'CO',flag:'🇨🇴',name:{es:'Colombia',en:'Colombia'}},{code:'CL',flag:'🇨🇱',name:{es:'Chile',en:'Chile'}},{code:'PE',flag:'🇵🇪',name:{es:'Perú',en:'Peru'}},{code:'VE',flag:'🇻🇪',name:{es:'Venezuela',en:'Venezuela'}},{code:'EC',flag:'🇪🇨',name:{es:'Ecuador',en:'Ecuador'}},{code:'BO',flag:'🇧🇴',name:{es:'Bolivia',en:'Bolivia'}},{code:'PY',flag:'🇵🇾',name:{es:'Paraguay',en:'Paraguay'}},{code:'UY',flag:'🇺🇾',name:{es:'Uruguay',en:'Uruguay'}},{code:'CR',flag:'🇨🇷',name:{es:'Costa Rica',en:'Costa Rica'}},{code:'GT',flag:'🇬🇹',name:{es:'Guatemala',en:'Guatemala'}},{code:'CU',flag:'🇨🇺',name:{es:'Cuba',en:'Cuba'}},{code:'DO',flag:'🇩🇴',name:{es:'República Dominicana',en:'Dominican Republic'}},{code:'HN',flag:'🇭🇳',name:{es:'Honduras',en:'Honduras'}},{code:'SV',flag:'🇸🇻',name:{es:'El Salvador',en:'El Salvador'}},{code:'NI',flag:'🇳🇮',name:{es:'Nicaragua',en:'Nicaragua'}},{code:'PA',flag:'🇵🇦',name:{es:'Panamá',en:'Panama'}},{code:'BR',flag:'🇧🇷',name:{es:'Brasil',en:'Brazil'}},{code:'CA',flag:'🇨🇦',name:{es:'Canadá',en:'Canada'}},{code:'GB',flag:'🇬🇧',name:{es:'Reino Unido',en:'United Kingdom'}},{code:'DE',flag:'🇩🇪',name:{es:'Alemania',en:'Germany'}},{code:'FR',flag:'🇫🇷',name:{es:'Francia',en:'France'}},{code:'IT',flag:'🇮🇹',name:{es:'Italia',en:'Italy'}},{code:'PT',flag:'🇵🇹',name:{es:'Portugal',en:'Portugal'}},{code:'JP',flag:'🇯🇵',name:{es:'Japón',en:'Japan'}},{code:'CN',flag:'🇨🇳',name:{es:'China',en:'China'}},{code:'IN',flag:'🇮🇳',name:{es:'India',en:'India'}},{code:'AU',flag:'🇦🇺',name:{es:'Australia',en:'Australia'}},{code:'KR',flag:'🇰🇷',name:{es:'Corea del Sur',en:'South Korea'}},{code:'RU',flag:'🇷🇺',name:{es:'Rusia',en:'Russia'}},{code:'ZA',flag:'🇿🇦',name:{es:'Sudáfrica',en:'South Africa'}},{code:'NG',flag:'🇳🇬',name:{es:'Nigeria',en:'Nigeria'}},{code:'EG',flag:'🇪🇬',name:{es:'Egipto',en:'Egypt'}},{code:'MA',flag:'🇲🇦',name:{es:'Marruecos',en:'Morocco'}},{code:'OTHER',flag:'🌍',name:{es:'Otro',en:'Other'}}];
+
+let selectedCountry=null;
+const countryDisplay=document.getElementById('country-display');
+const countryDropdown=document.getElementById('country-dropdown');
+const countryList=document.getElementById('country-list');
+const countrySearchInput=document.getElementById('country-search-input');
+
+function renderCountries(filter=''){
+  const filtered=COUNTRIES.filter(c=>c.name[currentLang].toLowerCase().includes(filter.toLowerCase())||c.name.en.toLowerCase().includes(filter.toLowerCase()));
+  countryList.innerHTML=filtered.map(c=>`<div class="country-opt${selectedCountry===c.code?' selected':''}" data-code="${c.code}">${c.flag} ${c.name[currentLang]}</div>`).join('');
+  countryList.querySelectorAll('.country-opt').forEach(el=>{
+    el.addEventListener('click',()=>{
+      selectedCountry=el.dataset.code;
+      document.getElementById('country-value').value=el.dataset.code;
+      countryDisplay.value=el.textContent.trim();
+      countryDropdown.classList.remove('open');
+    });
+  });
+}
+countryDisplay.addEventListener('click',()=>{countryDropdown.classList.toggle('open');if(countryDropdown.classList.contains('open')){renderCountries();countrySearchInput.focus();}});
+countrySearchInput.addEventListener('input',e=>renderCountries(e.target.value));
+document.addEventListener('click',e=>{if(!document.getElementById('country-wrap').contains(e.target))countryDropdown.classList.remove('open');});
+
+function checkStrength(val){
+  let score=0;if(val.length>=6)score++;if(val.length>=10)score++;if(/[A-Z]/.test(val)&&/[0-9]/.test(val))score++;if(/[^A-Za-z0-9]/.test(val))score++;
+  const colors=['','#ef4444','#f97316','#eab308','#22c55e'];
+  const labels={es:['','Débil','Regular','Buena','Fuerte'],en:['','Weak','Fair','Good','Strong']};
+  [1,2,3,4].forEach(i=>{document.getElementById('sb'+i).style.background=i<=score?colors[score]:'var(--border)';});
+  document.getElementById('strength-label').textContent=labels[currentLang][score]||'';
+}
+
+let pendingUserData=null;
+document.getElementById('reg-form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const errEl=document.getElementById('reg-error');
+  errEl.classList.remove('show');
+  const fname=document.getElementById('fname').value.trim();
+  const lname=document.getElementById('lname').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const country=document.getElementById('country-value').value;
+  const langPref=document.getElementById('lang-pref').value;
+  const emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!fname||!lname){showErr(currentLang==='es'?'Ingresa nombre y apellido':'Enter first and last name');return;}
+  if(!emailRx.test(email)){showErr(currentLang==='es'?'Correo inválido':'Invalid email');return;}
+  if(password.length<6){showErr(currentLang==='es'?'La contraseña debe tener al menos 6 caracteres':'Password must be at least 6 characters');return;}
+  if(!country){showErr(currentLang==='es'?'Selecciona tu país':'Select your country');return;}
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent=currentLang==='es'?'Creando cuenta...':'Creating account...';
+  try{
+    const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:fname,apellido:lname,email,password,pais:country,idioma:langPref})});
+    const data=await res.json();
+    if(data.token){
+      localStorage.setItem('ecosort_token',data.token);
+      localStorage.setItem('ecosort_user',JSON.stringify(data.user));
+      localStorage.setItem('ecosort_lang',langPref);
+      pendingUserData=data;
+      document.getElementById('photo-modal').classList.add('open');
+    } else {
+      showErr(data.message||(currentLang==='es'?'Error al crear la cuenta':'Error creating account'));
+    }
+  } catch(ex){showErr(currentLang==='es'?'Error de conexión':'Connection error');}
+  btn.disabled=false;btn.textContent=currentLang==='es'?'Crear cuenta':'Create account';
+});
+
+function showErr(msg){const el=document.getElementById('reg-error');el.textContent=msg;el.classList.add('show');}
+
+let photoBase64=null;
+document.getElementById('photo-file-input').addEventListener('change',function(){
+  const file=this.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    photoBase64=e.target.result;
+    const prev=document.getElementById('photo-preview');
+    prev.src=photoBase64;prev.style.display='block';
+    document.getElementById('photo-placeholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+});
+
+async function finishWithPhoto(photo){
+  if(photo){
+    try{await fetch('/api/user/photo',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('ecosort_token')},body:JSON.stringify({photo})});}catch(e){}
+  }
+  window.location.href='dashboard.html';
+}
+document.getElementById('btn-save-photo').addEventListener('click',()=>finishWithPhoto(photoBase64));
+document.getElementById('btn-skip-photo').addEventListener('click',()=>finishWithPhoto(null));
+
+const i18n={
+  es:{'nav.back':'Inicio','reg.title':'Crear cuenta','reg.sub':'Únete a la comunidad ECO-SORT','reg.fname':'Nombre','reg.lname':'Apellido','reg.email':'Correo electrónico','reg.pass':'Contraseña','reg.country':'País','reg.countryPh':'Selecciona tu país...','reg.lang':'Idioma preferido','reg.btn':'Crear cuenta','reg.have':'¿Ya tienes cuenta?','reg.login':'Iniciar sesión →','photo.title':'Foto de perfil','photo.sub':'Sube una foto para tu perfil. Se mostrará en el leaderboard.','photo.opt':'Opcional','photo.upload':'Subir foto','photo.save':'Guardar y continuar','photo.skip':'Continuar sin foto'},
+  en:{'nav.back':'Home','reg.title':'Create account','reg.sub':'Join the ECO-SORT community','reg.fname':'First name','reg.lname':'Last name','reg.email':'Email address','reg.pass':'Password','reg.country':'Country','reg.countryPh':'Select your country...','reg.lang':'Preferred language','reg.btn':'Create account','reg.have':'Already have an account?','reg.login':'Log in →','photo.title':'Profile photo','photo.sub':'Upload a photo for your profile. It will appear on the leaderboard.','photo.opt':'Optional','photo.upload':'Upload photo','photo.save':'Save and continue','photo.skip':'Continue without photo'}
+};
+let currentLang=localStorage.getItem('ecosort_lang')||'es';
+function setLang(lang){
+  currentLang=lang;localStorage.setItem('ecosort_lang',lang);
+  document.documentElement.setAttribute('data-lang',lang);
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang]?.[k])el.textContent=i18n[lang][k];});
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.getAttribute('data-i18n-placeholder');if(i18n[lang]?.[k])el.placeholder=i18n[lang][k];});
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===lang.toUpperCase()));
+  document.getElementById('lang-pref').value=lang;
+}
+setLang(currentLang);
+</script>
+</body>
+</html>

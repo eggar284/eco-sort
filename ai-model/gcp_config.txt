@@ -1,0 +1,6 @@
+PROJECT_ID=eco-sort-493019
+PROJECT_NAME=ECO-SORT
+REGION=us-central1
+ARTIFACT_REGISTRY_REPO=recycling-models
+ENDPOINT_NAME=recycling-endpoint
+MODEL_NAME=recycling-net-11
